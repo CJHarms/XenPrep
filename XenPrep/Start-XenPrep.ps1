@@ -124,10 +124,6 @@ New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -PropertyType "DWord"
 
 If ($Mode -eq "Seal" -and $FirstRunActions -eq $true) {
 
-###
-### Windows Cleanup Part
-###
-	
 #Create SageRun Set 11 in the cleanmgr Registry Hive. Used by cleanmgr.exe to clean specific Things like old Logs and MemoryDumps...
 New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\*' -Name StateFlags0011 -Value 2 -PropertyType DWord -Force | Out-Null
 #Delete specific SageRun Set 11 Flags for Windows Update Cleanup because WU Cleanup requires a restart to complete the Cleanup. WU Cleanup should be done manually for now.
@@ -165,7 +161,7 @@ If ($Mode -eq "Seal") {
 ### 
 If ($Mode -eq "Seal") {
 	
-	#Delete cached profiles
+	## Delete cached profiles
 	If ($CleanupProfiles -eq $true) {
 		Write-Host "Cleaning up cached profiles..."
 		If ((Test-Path "$AddonFolder\DelProf2\delprof2.exe") -eq $false ) {
@@ -178,22 +174,25 @@ If ($Mode -eq "Seal") {
 		}
 	}
 
-    #Delete Temp Files, Windows installers, Memory Dumps and much more via Cleanup Manager (cleanmgr.exe)
+    ## Delete Temp Files, Windows installers, Memory Dumps and much more via Cleanup Manager (cleanmgr.exe)
 	If ($CleanupWindows -eq $true) {
 		Write-Host "Cleaning up Temp Files..."
+		# Check if cleanmgr.exe is installed/present on the System
 		If ((Get-Command "cleanmgr.exe" -ErrorAction SilentlyContinue) -eq $null ) {
 			Write-Host ""
 			Write-Warning "Windows Cleanup failed!"
 			Write-Warning "cleanmgr.exe couldn't be found."
 			Write-Host ""
 		} Else {
+			# Run Sageset 11, which we created in the First Run Action Part
 			Start-Process -FilePath "cleanmgr.exe" -ArgumentList "/sagerun:11" -Wait -WindowStyle Minimized
 		}
 	}
 	
-	#Generalize AppSense CCA and EM
+	## Generalize AppSense CCA and EM
 	If ($AppSense -eq $true) {
 		Write-Host "Generalizing AppSense components..."
+		# Here we check if the specific Appsense Service is installed
 		Get-Service -Name "AppSense Client Communications Agent" -ErrorAction SilentlyContinue | Out-Null
 		If($?) {
 			Set-ItemProperty -Path "HKLM:\Software\AppSense Technologies\Communications Agent" -Name "Machine ID" -Value ""
@@ -207,15 +206,14 @@ If ($Mode -eq "Seal") {
 		}
 	}
 	
-    #Generalize TrendMicro OfficeScan
+    ## Generalize TrendMicro OfficeScan
 	If ($TrendMicro -eq $true) {
 		Write-Host "Generalizing TrendMicro Anti Virus..."
 		
-        #Workaround: Da TrendMicro die TCacheGen Dateien nach der Generalisierung löscht, kopieren wir sie hier zuerst vom Addon Folder in das TrendMicro Verzeichnis
-        #Stand: Office Scan 10.6 SP3 - 11.02.2016
+        # Workaround: Because TrendMicro is deleting the TCacheGenCli_x64.exe after sucessful execution we need to copy it into the TM Folder everytime before running
+        # tested with Office Scan 10.6 SP3 - 11.02.2016
         Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen\TCacheGen*.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -Force -ErrorAction SilentlyContinue
-        #Workaround End
-
+       
         If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq $false) {
 			Write-Host ""
 			Write-Warning "TrendMicro generalization failed!"
@@ -230,7 +228,7 @@ If ($Mode -eq "Seal") {
 	    }
     }
 	
-	#Delete VMware Tools Status Tray Icons
+	## Delete VMware Tools Status Tray Icons
 	If ($Optimize -eq $true -and $VMware -eq $true) {
 		Write-Host "Disabling VMware Tools Status Tray..."
 		# Deleting VMware Tools Status Tray Icons
@@ -238,7 +236,7 @@ If ($Mode -eq "Seal") {
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware User Process" -Force -ErrorAction SilentlyContinue		
 	}
 	
-	#Clear event log
+	## Clear event logs
 	If ($CleanupEventlog -eq $true) {
 		Write-Host "Clearing event logs..."
 		Clear-EventLog -LogName Application
@@ -246,7 +244,7 @@ If ($Mode -eq "Seal") {
 		Clear-EventLog -LogName System
 	}
 
-	#Optimize target device
+	## Optimize target device
 	If ($Optimize -eq $true) {
 		Write-Host "Optimizing target device..."
 		If ((Test-Path "$ProgramFiles64\Citrix\PvsVm\TargetOSOptimizer\TargetOSOptimizer.exe") -eq $false) {
@@ -263,11 +261,11 @@ If ($Mode -eq "Seal") {
 			}
 	}
 		
-	#Flush DNS cache
+	## Flush DNS cache
 	Write-Host "Flushing DNS cache..."
 	Start-Process -FilePath "ipconfig.exe" -ArgumentList "/flushdns" -Wait -WindowStyle Minimized
 	
-	#Reclaim Space on vDisk/Harddisk
+	## Reclaim Space on vDisk/Harddisk
 	If ($Optimize -eq $true) {
 		Write-Host "Reclaiming Disk Space..."
 		If ((Test-Path "$AddonFolder\sdelete\sdelete.exe") -eq $false ) {
@@ -300,6 +298,7 @@ If ($Mode -eq "Seal") {
 ###
 ### Shutdown task
 ###
+
 If ($Mode -eq "Seal" -and $Shutdown -eq $true) {
 	Write-Host "Shutting down computer..."
 	If ($Silent -eq $true) {
