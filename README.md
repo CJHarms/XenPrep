@@ -9,4 +9,4 @@ Edit the XenPrep-Seal.bat with your needed Switches.
 
 # ToDo
 [x] MCS Support
-[] PVS Support
+[ ] PVS Support
