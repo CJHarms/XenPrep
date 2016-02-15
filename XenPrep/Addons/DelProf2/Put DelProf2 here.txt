@@ -1,0 +1,6 @@
+Due to Licensing Requirements the required DelProf2.exe is not included by default.
+
+You need to download the DelProf2 Tool directly from https://helgeklein.com/free-tools/delprof2-user-profile-deletion-tool/ and put the DelProf2.exe in this Directory.
+
+P.S. Don't forget to pay Helge some Money for this great Tool or atleast allow him to use your Company Logo in his Marketing Materials.
+
