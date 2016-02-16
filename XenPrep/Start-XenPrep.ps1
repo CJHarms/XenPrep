@@ -25,6 +25,14 @@ Param (
 	[parameter(Mandatory = $true, HelpMessage = "Specifies if this script is used to seal (Seal) or start up (Startup)")]
 	[string][ValidateSet("Seal","Startup")]$Mode = "Seal",
 	
+	[parameter(Mandatory = $true, HelpMessage = "Specifies the used Delivery Method (MCS or PVS)")]
+	[alias("ProvMethod","Prov","Provisioning")]
+	[string][ValidateSet("MCS","PVS")]$ProvisioningMode = "MCS",
+	
+	[parameter(Mandatory = $false, HelpMessage = "Specifiy the Persitent Disk (PVS only) in the following Format n")]
+	[alias("Disk","Drive","DiskDrive","HDD")]
+	[string]$PersistentDisk = "D",
+	
 	[parameter(Mandatory = $false, HelpMessage = "Clean up Profiles")]
 	[Switch]$CleanupProfiles,
 
@@ -67,6 +75,12 @@ Write-Host "-- XenPrep Script"
 Write-Host "-- Original Development by Tim Arenz, tarenz@cema.de, cema.de, blog.cema.de"
 Write-Host "-- Changes by Claus Jan Harms, mail@cjharms.info, cjharms.info"
 Write-Host "------------------------------------------------------------------------------"
+
+###
+### Variables
+###
+
+$PersistentDiskDrive = "$PersistentDisk`:"
 
 ###
 ### Functions
@@ -134,6 +148,7 @@ Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explo
 ###
 ### General actions, processed in Startup and Seal/Rearm mode
 ###
+
 If ($Mode -eq "Startup" -or $Mode -eq "Seal") {
 	#Time Sync
 	Write-Host "Syncing time..."
@@ -291,9 +306,19 @@ If ($Mode -eq "Seal") {
 ### Start up actions, proccessed only in startup mode
 ###
 
-#If ($Mode -eq "Startup") {
-#
-#}
+If ($Mode -eq "Startup" -and $ProvisioningMethod -eq "PVS") {
+	#Create persistent drive (for PVS Write Cache) if not already available
+	If ((Test-Path $PersistentDiskDrive) -eq $false) {
+		Write-Output "select disk 0" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Encoding ASCII
+		Write-Output "clean" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Append -Encoding ASCII
+		Write-Output "create partition primary align=1024" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Append -Encoding ASCII
+		Write-Output "assign letter=$PersistentDisk" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Append -Encoding ASCII
+		Write-Output "active" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Append -Encoding ASCII
+		Write-Output "format fs=ntfs label=PersistentDisk quick" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Append -Encoding ASCII
+		Write-Output "exit" | Out-File -Force -FilePath "$env:TEMP\xenprep-diskpart.txt" -Append -Encoding ASCII
+		Start-Process -FilePath "diskpart.exe" -ArgumentList "/s `"$env:TEMP\xenprep-diskpart.txt`"" -Wait -WindowStyle Minimized
+		Remove-Item -Path "$env:TEMP\xenprep-diskpart.txt" -Force
+	}
 
 ###
 ### Shutdown task
