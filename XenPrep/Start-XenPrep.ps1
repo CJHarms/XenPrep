@@ -274,7 +274,7 @@ If ($Mode -eq "Seal") {
 			Write-Warning "sdelete.exe couldn't be found."
 			Write-Host ""
 		} Else {
-			Start-Process -FilePath "$AddonFolder\sdelete\sdelete.exe" -ArgumentList "/accepteula -q -z C:" -Wait -WindowStyle Minimized
+			Start-Process -FilePath "$AddonFolder\sdelete\sdelete.exe" -ArgumentList "/accepteula -q -z `"$env:SystemDrive`"" -Wait -WindowStyle Minimized
 		}
 	}
 }
