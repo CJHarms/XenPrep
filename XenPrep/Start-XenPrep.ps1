@@ -332,3 +332,4 @@ If ($Mode -eq "Seal" -and $Shutdown -eq $true) {
 	Stop-Computer -Confirm
 	}
 }
+
