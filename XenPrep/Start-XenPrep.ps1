@@ -67,6 +67,7 @@ Param (
 
 $ScriptFolder = Split-Path -Parent $MyInvocation.MyCommand.Path
 $AddonFolder = "$ScriptFolder\Addons"
+$LogFolder = "$ScriptFolder\Logs"
 $ErrorActionPreference = "Stop"
 
 Clear-Host
@@ -75,6 +76,12 @@ Write-Host "-- XenPrep Script"
 Write-Host "-- Original Development by Tim Arenz, tarenz@cema.de, cema.de, blog.cema.de"
 Write-Host "-- Changes by Claus Jan Harms, mail@cjharms.info, cjharms.info"
 Write-Host "------------------------------------------------------------------------------"
+
+###
+### Enable Logging
+###
+
+Start-Transcript -Path "$LogFolder\XenPrep.log" -IncludeInvocationHeader -ErrorAction SilentlyContinue | Out-Null
 
 ###
 ### Variables
@@ -321,6 +328,13 @@ If ($Mode -eq "Startup" -and $ProvisioningMethod -eq "PVS") {
 	}
 }
 
+
+###
+### Stop Logging (should be last one before Shutdown Task)
+###
+
+Stop-Transcript | Out-Null
+
 ###
 ### Shutdown task
 ###
@@ -333,7 +347,6 @@ If ($Mode -eq "Seal" -and $Shutdown -eq $true) {
 	Stop-Computer -Confirm
 	}
 }
-
 
 # SIG # Begin signature block
 # MIIVcgYJKoZIhvcNAQcCoIIVYzCCFV8CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
