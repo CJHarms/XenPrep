@@ -27,9 +27,9 @@ Param (
 	
 	[parameter(Mandatory = $true, HelpMessage = "Specifies the used Delivery Method (MCS or PVS)")]
 	[alias("ProvMethod","Prov","Provisioning")]
-	[string][ValidateSet("MCS","PVS")]$ProvisioningMode = "MCS",
+	[string][ValidateSet("MCS","PVS")]$ProvisioningMethod = "MCS",
 	
-	[parameter(Mandatory = $false, HelpMessage = "Specifiy the Persitent Disk (PVS only) in the following Format n without the :")]
+	[parameter(Mandatory = $false, HelpMessage = "Specifiy the Persistent Disk in the following Format n without the :")]
 	[alias("Disk","Drive","DiskDrive","HDD")]
 	[string][ValidatePattern("[A-Z]")]$PersistentDisk = "D",
 	
@@ -72,7 +72,7 @@ $ErrorActionPreference = "Stop"
 Clear-Host
 Write-Host "------------------------------------------------------------------------------"
 Write-Host "-- XenPrep Script"
-Write-Host "-- Original Development by Tim Arenz, tarenz@cema.de, cema.de, blog.cema.de"
+Write-Host "-- Original Development by Tim Arenz, arenz.cc, @timarenz"
 Write-Host "-- Changes by Claus Jan Harms, mail@cjharms.info, cjharms.info"
 Write-Host "------------------------------------------------------------------------------"
 
