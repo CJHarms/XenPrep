@@ -9,10 +9,10 @@
         None. You cannot pipe objects to this script.
 
         .EXAMPLE
-		C:\PS> Start-XenPrep.ps1 -Mode Seal -CleanupProfiles -CleanupEventlogs -Optimize -Shutdown
+		C:\PS> Start-XenPrep.ps1 -Mode Seal -ProvisioningMethod MCS -CleanupProfiles -CleanupEventlogs -Optimize -Shutdown
 		This examples show how Start-XenPrep can be used to generalize and seal a vDisk when using MCS.
 		
-        C:\PS> Start-XenPrep.ps1 -Mode Seal -CleanupProfiles -CleanupEventlogs -Optimize -VMware -Appsense -Shutdown
+        C:\PS> Start-XenPrep.ps1 -Mode Seal -ProvisioningMethod MCS -CleanupProfiles -CleanupEventlogs -Optimize -VMware -Appsense -Shutdown
 		This example show how Start-XenPrep is used in Seal (Rearm) Mode with additional Optimizations for VMware, TrendMicro and Appsense.
 		
 		.NOTES
