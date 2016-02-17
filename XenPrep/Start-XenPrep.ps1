@@ -1,9 +1,9 @@
 ﻿<#
         .SYNOPSIS 
-        Prepares the vDisk to be deployed via MCS.
+        Prepares the vDisk to be deployed via MCS/PVS.
 
         .DESCRIPTION
-        Prepares the current vDisk to be deployed via MCS.
+        Prepares the current vDisk to be deployed via MCS/PVS.
 
         .INPUTS
         None. You cannot pipe objects to this script.
@@ -16,8 +16,8 @@
 		This example show how Start-XenPrep is used in Seal (Rearm) Mode with additional Optimizations for VMware, TrendMicro and Appsense.
 		
 		.NOTES
-		Tim Arenz, tarenz@cema.de, cema.de, blog.cema.de
-		Claus Jan Harms, mail@cjharms.info, cjharms.info, blog.cjharms.info
+		Tim Arenz, arenz.cc, @timarenz
+		Claus Jan Harms, mail@cjharms.info, cjharms.info, @cjharms
 #>
 
 [CmdletBinding()]
@@ -29,9 +29,9 @@ Param (
 	[alias("ProvMethod","Prov","Provisioning")]
 	[string][ValidateSet("MCS","PVS")]$ProvisioningMode = "MCS",
 	
-	[parameter(Mandatory = $false, HelpMessage = "Specifiy the Persitent Disk (PVS only) in the following Format n")]
+	[parameter(Mandatory = $false, HelpMessage = "Specifiy the Persitent Disk (PVS only) in the following Format n without the :")]
 	[alias("Disk","Drive","DiskDrive","HDD")]
-	[string]$PersistentDisk = "D",
+	[string][ValidatePattern("[A-Z]")]$PersistentDisk = "D",
 	
 	[parameter(Mandatory = $false, HelpMessage = "Clean up Profiles")]
 	[Switch]$CleanupProfiles,
