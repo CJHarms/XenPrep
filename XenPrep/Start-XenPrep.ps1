@@ -158,69 +158,68 @@ Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explo
 
 If ($Mode -eq "Startup" -or $Mode -eq "Seal") {
 	#Time Sync
-	Write-Host "Syncing time..."
+	Write-Host -NoNewLine "Syncing time..."
 	Start-Process "w32tm.exe" -ArgumentList "/config /update" -Wait -WindowStyle Minimized
 	Start-Process "w32tm.exe" -ArgumentList "/resync" -Wait -WindowStyle Minimized
-	
+	Write-Host -ForegroundColor Green " done"
+    
 	#Group Policy Update
-	Write-Host "Updating group policy..."
+	Write-Host -NoNewLine "Updating group policy..."
 	Start-Process "cmd.exe" -ArgumentList "/C echo n | gpupdate.exe /target:computer" -Wait -WindowStyle Minimized
-	
-}
-
-###
-### Custom shut down actions, proccessed only in Seal/Rearm mode
-###
- 
-If ($Mode -eq "Seal") {
-
-    #Put Actions here!
-
+	Write-Host -ForegroundColor Green " done"
+    
 }
 
 ###
 ### Shut down actions, proccessed only in Seal/Rearm mode
-### 
+###
+ 
 If ($Mode -eq "Seal") {
 	
 	## Delete cached profiles
 	If ($CleanupProfiles -eq $true) {
-		Write-Host "Cleaning up cached profiles..."
+		Write-Host -NoNewLine "Cleaning up cached profiles..."
 		If ((Test-Path "$AddonFolder\DelProf2\delprof2.exe") -eq $false ) {
-			Write-Host ""
+			Write-Host -ForegroundColor Red " failed"
+            Write-Host ""
 			Write-Warning "Profile clean up failed!"
 			Write-Warning "delprof2.exe couldn't be found."
 			Write-Host ""
 		} Else {
 			Start-Process -FilePath "$AddonFolder\DelProf2\delprof2.exe" -ArgumentList "/u /i" -Wait -WindowStyle Minimized
+            Write-Host -ForegroundColor Green " done"
 		}
 	}
 
     ## Delete Temp Files, Windows installers, Memory Dumps and much more via Cleanup Manager (cleanmgr.exe)
 	If ($CleanupWindows -eq $true) {
-		Write-Host "Cleaning up Temp Files..."
+		Write-Host -NoNewLine "Cleaning up Temp Files..."
 		# Check if cleanmgr.exe is installed/present on the System
 		If ((Get-Command "cleanmgr.exe" -ErrorAction SilentlyContinue) -eq $null ) {
-			Write-Host ""
+			Write-Host -ForegroundColor Red " failed"
+            Write-Host ""
 			Write-Warning "Windows Cleanup failed!"
 			Write-Warning "cleanmgr.exe couldn't be found."
 			Write-Host ""
 		} Else {
 			# Run Sageset 11, which we created in the First Run Action Part
 			Start-Process -FilePath "cleanmgr.exe" -ArgumentList "/sagerun:11" -Wait -WindowStyle Minimized
-		}
+            Write-Host -ForegroundColor Green " done"
+		}   
 	}
 	
 	## Generalize AppSense CCA and EM
 	If ($AppSense -eq $true) {
-		Write-Host "Generalizing AppSense components..."
+		Write-Host -NoNewLine "Generalizing AppSense components..."
 		# Here we check if the specific Appsense Service is installed
 		Get-Service -Name "AppSense Client Communications Agent" -ErrorAction SilentlyContinue | Out-Null
 		If($?) {
 			Set-ItemProperty -Path "HKLM:\Software\AppSense Technologies\Communications Agent" -Name "Machine ID" -Value ""
 			Set-ItemProperty -Path "HKLM:\Software\AppSense Technologies\Communications Agent" -Name "Group ID" -Value ""
 			Get-ChildItem -Path "C:\appsensevirtual" -Recurse | Remove-Item -Force
+            Write-Host -ForegroundColor Green " done"
 		} Else {
+            Write-Host -ForegroundColor Red " failed"
 			Write-Host ""
 			Write-Warning "AppSense generalization failed!"
 			Write-Warning "AppSense components couldn't be found."
@@ -230,14 +229,15 @@ If ($Mode -eq "Seal") {
 	
     ## Generalize TrendMicro OfficeScan
 	If ($TrendMicro -eq $true) {
-		Write-Host "Generalizing TrendMicro Anti Virus..."
+		Write-Host -NoNewLine "Generalizing TrendMicro Anti Virus..."
 		
         # Workaround: Because TrendMicro is deleting the TCacheGenCli_x64.exe after sucessful execution we need to copy it into the TM Folder everytime before running
         # tested with Office Scan 10.6 SP3 - 11.02.2016
         Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen\TCacheGen*.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -Force -ErrorAction SilentlyContinue
        
         If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq $false) {
-			Write-Host ""
+			Write-Host -ForegroundColor Red " failed"
+            Write-Host ""
 			Write-Warning "TrendMicro generalization failed!"
 			Write-Warning "TrendMicro Tools for generalization couldn't be found."
 			Write-Host ""
@@ -247,30 +247,34 @@ If ($Mode -eq "Seal") {
 		        } Else {
 			        Start-Process -FilePath "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli.exe" -ArgumentList "Remove_GUID" -Wait -WindowStyle Minimized
 	            }
+        Write-Host -ForegroundColor Green " done"        
 	    }
     }
 	
 	## Delete VMware Tools Status Tray Icons
 	If ($Optimize -eq $true -and $VMware -eq $true) {
-		Write-Host "Disabling VMware Tools Status Tray..."
+		Write-Host -NoNewLine "Disabling VMware Tools Status Tray..."
 		# Deleting VMware Tools Status Tray Icons
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware Tools" -Force -ErrorAction SilentlyContinue
-		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware User Process" -Force -ErrorAction SilentlyContinue		
+		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware User Process" -Force -ErrorAction SilentlyContinue
+        Write-Host -ForegroundColor Green " done"		
 	}
 	
 	## Clear event logs
 	If ($CleanupEventlog -eq $true) {
-		Write-Host "Clearing event logs..."
+		Write-Host -NoNewLine "Clearing event logs..."
 		Clear-EventLog -LogName Application
 		Clear-EventLog -LogName Security
 		Clear-EventLog -LogName System
+        Write-Host -ForegroundColor Green " done"
 	}
 
 	## Optimize target device
 	If ($Optimize -eq $true) {
-		Write-Host "Optimizing target device..."
+		Write-Host -NoNewLine "Optimizing target device..."
 		If ((Test-Path "$ProgramFiles64\Citrix\PvsVm\TargetOSOptimizer\TargetOSOptimizer.exe") -eq $false) {
-			Write-Host ""
+			Write-Host -ForegroundColor Red " failed"
+            Write-Host ""
 			Write-Warning "Citrix Target Optimization failed!"
 			Write-Warning "Citrix Target Optimizer couldn't be found."
 			Write-Host ""
@@ -280,34 +284,30 @@ If ($Mode -eq "Seal") {
 				} Else {
 					Start-Process -FilePath "$ProgramFiles\Citrix\PvsVm\TargetOSOptimizer\TargetOSOptimizer.exe" -ArgumentList "/silent" -Wait -WindowStyle Minimized
 				}
+            Write-Host -ForegroundColor Green " done"    
 			}
 	}
 		
 	## Flush DNS cache
-	Write-Host "Flushing DNS cache..."
+	Write-Host -NoNewLine "Flushing DNS cache..."
 	Start-Process -FilePath "ipconfig.exe" -ArgumentList "/flushdns" -Wait -WindowStyle Minimized
-	
+	Write-Host -ForegroundColor Green " done"
+    
 	## Reclaim Space on vDisk/Harddisk
 	If ($Optimize -eq $true) {
-		Write-Host "Reclaiming Disk Space..."
+		Write-Host -NoNewLine "Reclaiming Disk Space..."
 		If ((Test-Path "$AddonFolder\sdelete\sdelete.exe") -eq $false ) {
-			Write-Host ""
+			Write-Host -ForegroundColor Red " failed"
+            Write-Host ""
 			Write-Warning "Space Reclamation failed!"
 			Write-Warning "sdelete.exe couldn't be found."
 			Write-Host ""
 		} Else {
 			Start-Process -FilePath "$AddonFolder\sdelete\sdelete.exe" -ArgumentList "/accepteula -q -z `"$env:SystemDrive`"" -Wait -WindowStyle Minimized
+            Write-Host -ForegroundColor Green " done"
 		}
 	}
 }
-
-###
-### Custom start up actions, proccessed only in startup mode
-###
-
-#If ($Mode -eq "Startup") {
-#
-#}
 
 ###
 ### Start up actions, proccessed only in startup mode
