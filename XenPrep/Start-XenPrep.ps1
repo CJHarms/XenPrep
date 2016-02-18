@@ -81,7 +81,7 @@ Write-Host "--------------------------------------------------------------------
 ### Enable Logging
 ###
 
-Start-Transcript -Path "$LogFolder\XenPrep.log" -IncludeInvocationHeader -ErrorAction SilentlyContinue | Out-Null
+#Start-Transcript -Path "$LogFolder\XenPrep.log" -ErrorAction SilentlyContinue | Out-Null
 
 ###
 ### Variables
@@ -112,7 +112,7 @@ If ((Test-Admin) -eq $false) {
 }
 
 #Check Bitness
-Write-Host "Checking operating system bitness..."
+Write-Host -NoNewLine "Checking operating system bitness..."
 If(((Get-WmiObject -Class Win32_ComputerSystem).SystemType) -match "x64") {
 	$Bitness = "x64"
 	$ProgramFiles = ${env:ProgramFiles(X86)}
@@ -121,6 +121,7 @@ If(((Get-WmiObject -Class Win32_ComputerSystem).SystemType) -match "x64") {
 	$Bitness = "x86"
 	$ProgramFiles = ${env:ProgramFiles}
 }
+Write-Host -ForegroundColor Green " done" 
 
 #Create first run registry key
 If ($ForceFirstRun -eq $true) {
@@ -233,8 +234,17 @@ If ($Mode -eq "Seal") {
 		
         # Workaround: Because TrendMicro is deleting the TCacheGenCli_x64.exe after sucessful execution we need to copy it into the TM Folder everytime before running
         # tested with Office Scan 10.6 SP3 - 11.02.2016
-        Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen\TCacheGen*.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -Force -ErrorAction SilentlyContinue
-       
+
+        If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq "$false") {
+           Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGenCli_x64.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
+           Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen_x64.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
+        } Else {
+           Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGenCli.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
+           Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
+           }
+        
+        
+        # Normal Startup 
         If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq $false) {
 			Write-Host -ForegroundColor Red " failed"
             Write-Host ""
@@ -250,7 +260,7 @@ If ($Mode -eq "Seal") {
         Write-Host -ForegroundColor Green " done"        
 	    }
     }
-	
+    	
 	## Delete VMware Tools Status Tray Icons
 	If ($Optimize -eq $true -and $VMware -eq $true) {
 		Write-Host -NoNewLine "Disabling VMware Tools Status Tray..."
@@ -287,13 +297,8 @@ If ($Mode -eq "Seal") {
             Write-Host -ForegroundColor Green " done"    
 			}
 	}
-		
-	## Flush DNS cache
-	Write-Host -NoNewLine "Flushing DNS cache..."
-	Start-Process -FilePath "ipconfig.exe" -ArgumentList "/flushdns" -Wait -WindowStyle Minimized
-	Write-Host -ForegroundColor Green " done"
-    
-	## Reclaim Space on vDisk/Harddisk
+	
+    ## Reclaim Space on vDisk/Harddisk
 	If ($Optimize -eq $true) {
 		Write-Host -NoNewLine "Reclaiming Disk Space..."
 		If ((Test-Path "$AddonFolder\sdelete\sdelete.exe") -eq $false ) {
@@ -307,6 +312,12 @@ If ($Mode -eq "Seal") {
             Write-Host -ForegroundColor Green " done"
 		}
 	}
+	
+	## Flush DNS cache
+	Write-Host -NoNewLine "Flushing DNS cache..."
+	Start-Process -FilePath "ipconfig.exe" -ArgumentList "/flushdns" -Wait -WindowStyle Minimized
+	Write-Host -ForegroundColor Green " done"
+    
 }
 
 ###
@@ -333,7 +344,7 @@ If ($Mode -eq "Startup" -and $ProvisioningMethod -eq "PVS") {
 ### Stop Logging (should be last one before Shutdown Task)
 ###
 
-Stop-Transcript | Out-Null
+#Stop-Transcript | Out-Null
 
 ###
 ### Shutdown task
