@@ -177,6 +177,41 @@ If ($Mode -eq "Startup" -or $Mode -eq "Seal") {
  
 If ($Mode -eq "Seal") {
 	
+    ## Disable certain Scheduled Tasks
+	If ($Optimize -eq $true) {
+	    Write-Host -NoNewLine "Syncing time..."
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Application Experience\AitAgent"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Application Experience\ProgramDataUpdater"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Application Experience\StartupAppTask"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Autochk\Proxy"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Bluetooth\UninstallDeviceTask"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Customer Experience Improvement Program\BthSQM"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Customer Experience Improvement Program\Consolidator"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Customer Experience Improvement Program\KernelCeipTask"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Customer Experience Improvement Program\Uploader"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Customer Experience Improvement Program\UsbCeip"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Diagnosis\Scheduled"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticResolver"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Maintenance\WinSAT"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\MobilePC\HotStart"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Power Efficiency Diagnostic\AnalyzeSystem"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\RAC\RacTask"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Ras\MobilityManager"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Shell\FamilySafetyMonitor"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Shell\FamilySafetyRefresh"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\SideShow\AutoWake"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\SideShow\GadgetManager"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\SideShow\SessionAgent"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\SideShow\SystemDataProviders"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\UPnP\UPnPHostConfig"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\WDI\ResolutionHost"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Windows Filtering Platform\BfeOnServiceStartTypeChange"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Windows Media Sharing\UpdateLibrary"" /disable" -Wait -WindowStyle Hidden
+        Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\WindowsBackup\ConfigNotification"" /disable" -Wait -WindowStyle Hidden
+        Write-Host -ForegroundColor Green " done"
+	}
+
 	## Delete cached profiles
 	If ($CleanupProfiles -eq $true) {
 		Write-Host -NoNewLine "Cleaning up cached profiles..."
