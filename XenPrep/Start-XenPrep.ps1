@@ -179,7 +179,7 @@ If ($Mode -eq "Seal") {
 	
     ## Disable certain Scheduled Tasks
 	If ($Optimize -eq $true) {
-	    Write-Host -NoNewLine "Syncing time..."
+	    Write-Host -NoNewLine "Disabling Scheduled Tasks..."
         Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Application Experience\AitAgent"" /disable" -Wait -WindowStyle Hidden
         Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Application Experience\ProgramDataUpdater"" /disable" -Wait -WindowStyle Hidden
         Start-Process "schtasks.exe" -ArgumentList "/change /tn ""microsoft\windows\Application Experience\StartupAppTask"" /disable" -Wait -WindowStyle Hidden
