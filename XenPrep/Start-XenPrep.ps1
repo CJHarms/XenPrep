@@ -235,7 +235,7 @@ If ($Mode -eq "Seal") {
         
         Write-Host -NoNewLine "Setting TrendMicro Performance Registry Key..."
 		# Setting DisableCtProcCheck=1 to prevent Performance Issues with TrendMicro - see: https://support.citrix.com/article/CTX136680
-		Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TmFilter\Parameters" -Name "DisableCtProcCheck" -PropertyType "DWord" -Value "1" | Out-Null
+		Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TmFilter\Parameters" -Name "DisableCtProcCheck" -Type "DWord" -Value "1" | Out-Null
         
         Write-Host -ForegroundColor Green " done"		
 
