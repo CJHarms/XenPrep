@@ -230,8 +230,18 @@ If ($Mode -eq "Seal") {
 	
     ## Generalize TrendMicro OfficeScan
 	If ($TrendMicro -eq $true) {
-		Write-Host -NoNewLine "Generalizing TrendMicro Anti Virus..."
 		
+        ## TrendMicro Performance Part
+        
+        Write-Host -NoNewLine "Setting TrendMicro Performance Registry Key..."
+		# Setting DisableCtProcCheck=1 to prevent Performance Issues with TrendMicro - see: https://support.citrix.com/article/CTX136680
+		Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TmFilter\Parameters" -Name "DisableCtProcCheck" -Type "DWord" -Value "1" | Out-Null
+        
+        Write-Host -ForegroundColor Green " done"		
+
+        ## TrendMicro Generalization Part
+        
+        Write-Host -NoNewLine "Generalizing TrendMicro Anti Virus..."
         # Workaround: Because TrendMicro is deleting the TCacheGenCli_x64.exe after sucessful execution we need to copy it into the TM Folder everytime before running
         # tested with Office Scan 10.6 SP3 - 11.02.2016
 
@@ -242,9 +252,8 @@ If ($Mode -eq "Seal") {
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGenCli.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
            }
-        
-        
-        # Normal Startup 
+        # End of Workaround
+
         If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq $false) {
 			Write-Host -ForegroundColor Red " failed"
             Write-Host ""
