@@ -176,6 +176,13 @@ If ($Mode -eq "Startup" -or $Mode -eq "Seal") {
 ###
  
 If ($Mode -eq "Seal") {
+    
+    ## Disable Large Send Offload for PVS Deployments
+	If ($Optimize -eq $true -and $ProvisioningMethod -eq "PVS") {
+	    Write-Host -NoNewLine "Disabling Large Send Offload..."
+        Start-Process "netsh" -ArgumentList "interface tcp set global chimney=disabled" -Wait -WindowStyle Hidden
+        Write-Host -ForegroundColor Green " done"
+	}
 	
     ## Disable certain Scheduled Tasks
 	If ($Optimize -eq $true) {
