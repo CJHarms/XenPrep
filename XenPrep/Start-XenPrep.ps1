@@ -325,7 +325,7 @@ If ($Mode -eq "Seal") {
 	If ($Optimize -eq $true -and $ProvisioningMethod -eq "PVS") {
 		Write-Host -NoNewLine "Disabling PVS Status Tray..."
 		# Set Registry Key to disable PVS Status Tray Icon
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Citrix\ProvisioningServices" -Name "StatusTray" -Value "0" -Type "DWORD" -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Citrix\ProvisioningServices" -Name "StatusTray" -Value "0" -Type DWORD -ErrorAction SilentlyContinue
         Write-Host -ForegroundColor Green " done"		
 	}
 	
