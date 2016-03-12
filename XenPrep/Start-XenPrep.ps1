@@ -308,7 +308,9 @@ If ($Mode -eq "Seal") {
 	## Delete VMware Tools Status Tray Icons
 	If ($Optimize -eq $true -and $VMware -eq $true) {
 		Write-Host -NoNewLine "Disabling VMware Tools Status Tray..."
-		# Deleting VMware Tools Status Tray Icons
+		# Set Registry Key to disable Status Tray Icon
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\VMware, Inc.\VMware Tools" -Name "ShowTray" -Value "0" -Type DWORD -ErrorAction SilentlyContinue
+        # Deleting VMware Tools Status Tray Icons from Run
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware Tools" -Force -ErrorAction SilentlyContinue
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware User Process" -Force -ErrorAction SilentlyContinue
         Write-Host -ForegroundColor Green " done"		
