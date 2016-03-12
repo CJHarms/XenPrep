@@ -320,6 +320,14 @@ If ($Mode -eq "Seal") {
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware User Process" -Force -ErrorAction SilentlyContinue
         Write-Host -ForegroundColor Green " done"		
 	}
+    
+    ## Disable PVS Status Tray Icon
+	If ($Optimize -eq $true -and $ProvisioningMethod -eq "PVS") {
+		Write-Host -NoNewLine "Disabling PVS Status Tray..."
+		# Set Registry Key to disable PVS Status Tray Icon
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Citrix\ProvisioningServices" -Name "StatusTray" -Value "0" -Type "DWORD" -ErrorAction SilentlyContinue
+        Write-Host -ForegroundColor Green " done"		
+	}
 	
 	## Clear event logs
 	If ($CleanupEventlog -eq $true) {
