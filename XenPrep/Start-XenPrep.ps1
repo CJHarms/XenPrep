@@ -126,7 +126,7 @@ Write-Host -ForegroundColor Green " done"
 #Create first run registry key
 If ($ForceFirstRun -eq $true) {
 	New-Item "HKLM:\SOFTWARE\XenPrep" -Force | Out-Null
-	New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -PropertyType "DWord" -Value 0 -Force | Out-Null
+	New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -Value "0" -PropertyType "DWORD" -Force | Out-Null
 }
 
 #Check first run registry key
@@ -138,7 +138,7 @@ If (((Get-ItemProperty "HKLM:\SOFTWARE\XenPrep" -ErrorAction SilentlyContinue).F
 
 #Set first run key
 New-Item "HKLM:\SOFTWARE\XenPrep" -Force | Out-Null
-New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -PropertyType "DWord" -Value 1 -Force | Out-Null
+New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -Value "1" -PropertyType "DWORD" -Force | Out-Null
 
 ###
 ### First run actions, proccessed only one time in Seal/Rearm mode.
@@ -147,9 +147,9 @@ New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -PropertyType "DWord"
 If ($Mode -eq "Seal" -and $FirstRunActions -eq $true) {
 
 #Create SageRun Set 11 in the cleanmgr Registry Hive. Used by cleanmgr.exe to clean specific Things like old Logs and MemoryDumps...
-New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\*' -Name StateFlags0011 -Value 2 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\*" -Name "StateFlags0011" -Value "2" -PropertyType "DWORD" -Force | Out-Null
 #Delete specific SageRun Set 11 Flags for Windows Update Cleanup because WU Cleanup requires a restart to complete the Cleanup. WU Cleanup should be done manually for now.
-Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Update Cleanup' -Name StateFlags0011 -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Update Cleanup" -Name "StateFlags0011" -ErrorAction SilentlyContinue
 
 }
 
@@ -267,18 +267,15 @@ If ($Mode -eq "Seal") {
 	If ($TrendMicro -eq $true) {
 		
         ## TrendMicro Performance Part
-        
         Write-Host -NoNewLine "Setting TrendMicro Performance Registry Key..."
 		# Setting DisableCtProcCheck=1 to prevent Performance Issues with TrendMicro - see: https://support.citrix.com/article/CTX136680
-		Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TmFilter\Parameters" -Name "DisableCtProcCheck" -Type "DWord" -Value "1" | Out-Null
-        
+		Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TmFilter\Parameters" -Name "DisableCtProcCheck" -Type "DWORD" -Value "1"
         Write-Host -ForegroundColor Green " done"		
 
         ## TrendMicro Generalization Part
-        
         Write-Host -NoNewLine "Generalizing TrendMicro Anti Virus..."
         # Workaround: Because TrendMicro is deleting the TCacheGenCli_x64.exe after sucessful execution we need to copy it into the TM Folder everytime before running
-        # tested with Office Scan 10.6 SP3 - 11.02.2016
+        # Tested with Office Scan 10.6 SP3
 
         If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq "$false") {
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGenCli_x64.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
@@ -309,10 +306,10 @@ If ($Mode -eq "Seal") {
 	If ($Optimize -eq $true -and $VMware -eq $true) {
 		Write-Host -NoNewLine "Disabling VMware Tools Status Tray..."
 		# Set Registry Key to disable Status Tray Icon
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\VMware, Inc.\VMware Tools" -Name "ShowTray" -Value "0" -Type DWORD -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\VMware, Inc.\VMware Tools" -Name "ShowTray" -Value "0" -Type "DWORD" -ErrorAction SilentlyContinue
         # Deleting VMware Tools Status Tray Icons from Run
-		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware Tools" -Force -ErrorAction SilentlyContinue
-		Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run -Name "VMware User Process" -Force -ErrorAction SilentlyContinue
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "VMware Tools" -Force -ErrorAction SilentlyContinue
+		Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "VMware User Process" -Force -ErrorAction SilentlyContinue
         Write-Host -ForegroundColor Green " done"		
 	}
 	
