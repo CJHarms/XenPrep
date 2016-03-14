@@ -1,3 +1,5 @@
+[![Build Status](https://ci.appveyor.com/api/projects/status/m364htcsmp8xrmkp/branch/master?svg=true)](https://ci.appveyor.com/project/CJHarms/xenprep/branch/master)
+
 # XenPrep
 Generalize a Citrix XenApp/XenDesktop 7.x Master Image / Golden Image / vDisk before Rollout.
 
