@@ -73,25 +73,22 @@ $ErrorActionPreference = "Stop"
 Clear-Host
 Write-Host "------------------------------------------------------------------------------"
 Write-Host "-- XenPrep Script"
-Write-Host "-- Original Development by Tim Arenz, arenz.cc, @timarenz"
-Write-Host "-- Changes by Claus Jan Harms, mail@cjharms.info, cjharms.info"
+Write-Host "-- Original Development by Tim Arenz, arenz.cc, @TimArenz"
+Write-Host "-- Changes by Claus Jan Harms, cjharms.info, @CJHarms"
 Write-Host "------------------------------------------------------------------------------"
 
 ###
 ### Enable Logging
-###
 
 #Start-Transcript -Path "$LogFolder\XenPrep.log" -ErrorAction SilentlyContinue | Out-Null
 
 ###
 ### Variables
-###
 
 $PersistentDiskDrive = "$PersistentDisk`:"
 
 ###
 ### Functions
-###
 
 function Test-Admin {
   $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
@@ -100,7 +97,6 @@ function Test-Admin {
 
 ###
 ### Pre check
-###
 
 #Admin User?
 If ((Test-Admin) -eq $false) {
@@ -117,11 +113,12 @@ If(((Get-WmiObject -Class Win32_ComputerSystem).SystemType) -match "x64") {
 	$Bitness = "x64"
 	$ProgramFiles = ${env:ProgramFiles(X86)}
 	$ProgramFiles64 = ${env:ProgramFiles}
+	Write-Host -ForegroundColor Green " x64 detected"
 } Else { 
 	$Bitness = "x86"
 	$ProgramFiles = ${env:ProgramFiles}
+	Write-Host -ForegroundColor Green " x86 detected"
 }
-Write-Host -ForegroundColor Green " done" 
 
 #Create first run registry key
 If ($ForceFirstRun -eq $true) {
@@ -142,26 +139,24 @@ New-ItemProperty "HKLM:\SOFTWARE\XenPrep" -Name "FirstRun" -Value "1" -PropertyT
 
 ###
 ### First run actions, proccessed only one time in Seal/Rearm mode.
-###
 
 If ($Mode -eq "Seal" -and $FirstRunActions -eq $true) {
 
 #Create SageRun Set 11 in the cleanmgr Registry Hive. Used by cleanmgr.exe to clean specific Things like old Logs and MemoryDumps...
 New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\*" -Name "StateFlags0011" -Value "2" -PropertyType "DWORD" -Force | Out-Null
-#Delete specific SageRun Set 11 Flags for Windows Update Cleanup because WU Cleanup requires a restart to complete the Cleanup. WU Cleanup should be done manually for now.
+#Delete specific SageRun Set 11 Flags for the "Windows Update Cleanup" Task because WU Cleanup requires a restart to complete the Cleanup.
 Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Update Cleanup" -Name "StateFlags0011" -ErrorAction SilentlyContinue
 
 }
 
 ###
 ### General actions, processed in Startup and Seal/Rearm mode
-###
 
 If ($Mode -eq "Startup" -or $Mode -eq "Seal") {
 	#Time Sync
 	Write-Host -NoNewLine "Syncing time..."
 	Start-Process "w32tm.exe" -ArgumentList "/config /update" -Wait -WindowStyle Minimized
-	Start-Process "w32tm.exe" -ArgumentList "/resync" -Wait -WindowStyle Minimized
+	Start-Process "w32tm.exe" -ArgumentList "/resync /rediscover" -Wait -WindowStyle Minimized
 	Write-Host -ForegroundColor Green " done"
     
 	#Group Policy Update
@@ -173,7 +168,6 @@ If ($Mode -eq "Startup" -or $Mode -eq "Seal") {
 
 ###
 ### Shut down actions, proccessed only in Seal/Rearm mode
-###
  
 If ($Mode -eq "Seal") {
 	
@@ -276,16 +270,15 @@ If ($Mode -eq "Seal") {
         Write-Host -NoNewLine "Generalizing TrendMicro Anti Virus..."
         # Workaround: Because TrendMicro is deleting the TCacheGenCli_x64.exe after sucessful execution we need to copy it into the TM Folder everytime before running
         # Tested with Office Scan 10.6 SP3
-
-        If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq "$false") {
+		If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq "$false") {
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGenCli_x64.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen_x64.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
         } Else {
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGenCli.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
            Copy-Item -Path "$AddonFolder\TrendMicro\TCacheGen.exe" -Destination "$ProgramFiles\Trend Micro\OfficeScan Client\" -ErrorAction SilentlyContinue
            }
-        # End of Workaround
 
+		# Run TrendMicro Generalization Tool
         If ((Test-Path "$ProgramFiles\Trend Micro\OfficeScan Client\TCacheGenCli_x64.exe") -eq $false) {
 			Write-Host -ForegroundColor Red " failed"
             Write-Host ""
@@ -365,7 +358,6 @@ If ($Mode -eq "Seal") {
 
 ###
 ### Start up actions, proccessed only in startup mode
-###
 
 If ($Mode -eq "Startup" -and $ProvisioningMethod -eq "PVS") {
 	#Create persistent drive (for PVS Write Cache) if not already available
@@ -382,16 +374,13 @@ If ($Mode -eq "Startup" -and $ProvisioningMethod -eq "PVS") {
 	}
 }
 
-
 ###
 ### Stop Logging (should be last one before Shutdown Task)
-###
 
 #Stop-Transcript | Out-Null
 
 ###
 ### Shutdown task
-###
 
 If ($Mode -eq "Seal" -and $Shutdown -eq $true) {
 	Write-Host "Shutting down computer..."
@@ -405,8 +394,8 @@ If ($Mode -eq "Seal" -and $Shutdown -eq $true) {
 # SIG # Begin signature block
 # MIIYcgYJKoZIhvcNAQcCoIIYYzCCGF8CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAzn7D8tQFUAL6V
-# MGkMMLCmZbUUlmc9uYi0kuJ3vazm2qCCE30wggPuMIIDV6ADAgECAhB+k+v7fMZO
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCMcx9gPlJi6EIl
+# hetUjTs6AcH6YOWdOvqoJjKe6iNV4qCCE30wggPuMIIDV6ADAgECAhB+k+v7fMZO
 # WepLmnfUBvw7MA0GCSqGSIb3DQEBBQUAMIGLMQswCQYDVQQGEwJaQTEVMBMGA1UE
 # CBMMV2VzdGVybiBDYXBlMRQwEgYDVQQHEwtEdXJiYW52aWxsZTEPMA0GA1UEChMG
 # VGhhd3RlMR0wGwYDVQQLExRUaGF3dGUgQ2VydGlmaWNhdGlvbjEfMB0GA1UEAxMW
@@ -516,22 +505,22 @@ If ($Mode -eq "Seal" -and $Shutdown -eq $true) {
 # IDIgT2JqZWN0IENBAhBKv/S1xxX8eqNHoqI9BSpnMA0GCWCGSAFlAwQCAQUAoIGE
 # MBgGCisGAQQBgjcCAQwxCjAIoAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQB
 # gjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkE
-# MSIEIMx+gHct09EQqwKQYuZNFM0mynifgiuB+7rmSxRmXOwGMA0GCSqGSIb3DQEB
-# AQUABIIBAJZde8E/1SkwiXrg7bZVREIK/Yf1fD9FPwTlf6o7g0m+v7hy2gLcUnx2
-# rrAmYFRLzg7Rp3ng6oYoA0lrfWRgECeDE8xU/S2W+WVMEuyGUjpXNYhKRuCHFMVa
-# Wyf7h8gaGq0RdO+rxgGf1ELsRc1RLRe5h5Xgw2BIyJk6CE5k2V3/ZYfwn/fYZRMx
-# V4xp02mHFXqhK2wVvMe2k/5OBsdbp8ChfL/a1m0vHTMwS0ILNmtECiOtd7SHrIfF
-# 3P+lOlWpoSR0LIGU1w12SBzzNYtFYRy2FSX0pIENTFDGBsM+SlwKCq+wrAtoYkeo
-# ai6DO3lGCT+eFEoM1Sgv0G5aS/tPILihggILMIICBwYJKoZIhvcNAQkGMYIB+DCC
+# MSIEILFi/V9TYfmCla/cP38aarzArVQb+HP8HXft05lhqBoYMA0GCSqGSIb3DQEB
+# AQUABIIBADoW4wlM7FXG2UZrI+MBktl47ZZ7y2TXtqph7jIVz2AwytgZc7DJc12k
+# bxUSiOJxTqtSrZQABItPLX/NTgQWWtdZOYK5EtaKd06zXwyNub0NUJ7nZTXYx6l+
+# 9P/nPb1+TALs03ymv/T7Bt3RdDUjVwL2mq4Anc234jIMMmoJ6A3TvOC3dsb3nv2j
+# oX3XvyxfBHJj1Pxjo9AxPLU0pALjl2EROmOB5Y2jxQ5ZJauWH6lijDusdVmsiZyl
+# FeGKSbZCU9ry7ab3C7YGSWsay4sR00Mvv4eLfl8WA7jay3xzbQCV9jz0P68SNX/p
+# vyWiFZCvE9hG/30ox0xNDTzs8f+tQhWhggILMIICBwYJKoZIhvcNAQkGMYIB+DCC
 # AfQCAQEwcjBeMQswCQYDVQQGEwJVUzEdMBsGA1UEChMUU3ltYW50ZWMgQ29ycG9y
 # YXRpb24xMDAuBgNVBAMTJ1N5bWFudGVjIFRpbWUgU3RhbXBpbmcgU2VydmljZXMg
 # Q0EgLSBHMgIQDs/0OMj+vzVuBNhqmBsaUDAJBgUrDgMCGgUAoF0wGAYJKoZIhvcN
-# AQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTYwMzA4MDk0ODU1WjAj
-# BgkqhkiG9w0BCQQxFgQUdZdVmRTF6Z5baSvJzOuVmc7dvEIwDQYJKoZIhvcNAQEB
-# BQAEggEAfpDY+x9dEnW3yikyBfhBMyeZSBUUSbP+HiDJekU7iDhAq5TLTB9prUGx
-# 2H5JMSC3I8NcGXeszOtoRdDjaRrA/5T0Tm3j5XrEgYrozJuCbQtWk/IoGzz97++v
-# Mq+BMR3HdigI0tcmwELogPR66C0N8Nee1M6QiJ/bOCqaZrGjdZNF4GQE2KtwtDSl
-# VTDG6xdorfmUcgLUmlyScbSGQtfQQGlEolq1Z3Ew4lCKmAUxAY0GDQFQ/8O1Ndqp
-# vAmTMs0nWnRA6Yir4Bk5T1VysfGOUNixCy0j29qS+oYNWkNpiX6Ok3YNHw6KNvqQ
-# 5xAt9ZNbUF+f/1+jB7lAxLj1fF36xg==
+# AQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTYwNzI2MTIyMjA2WjAj
+# BgkqhkiG9w0BCQQxFgQUQ4lxq+J+meXc8n0irDrGQIOlnzwwDQYJKoZIhvcNAQEB
+# BQAEggEAdA+XNKLlsFw8su9w1/ya+LQUNL9IWjgDZP7um3GRRCMalxracgoZqSrn
+# XjdgO67/8X+0dITyU/vs4wq4kef5MT8NkuhfFMuixhUMT1nkqi59LpAVlo50stpm
+# GD6AgwWbveQfU4LYaypQI/VXgBThp3JEbC4nKG9+yo4Y2FjrmHlxWp/LtXW91CL9
+# 6CTdZDvePcL4uMBjZWdIIJDZMqx3OAnzm2QuBNf0bE0GURW/raaFy065L68c4W+K
+# BVCK56PyfdBl9kcNp7/m+py0zcS8N0vW9W/dBjv5WrgneB0c21H6vFft3NQqBWXO
+# bcgRnVa5wctg1hd+FAkqE+3YSATVQg==
 # SIG # End signature block
