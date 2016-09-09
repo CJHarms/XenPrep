@@ -10,8 +10,8 @@ Citrix
 - [ ] XenDesktop 7.x Client OS Virtual Desktop Agent (VDA)
 
 Microsoft
-- [ ] Windows Server 2012 R2
-- [ ] Windows Server 2012
+- [x] Windows Server 2012 R2
+- [x] Windows Server 2012
 - [x] Windows Server 2008 R2
 - [ ] Windows 7
 
