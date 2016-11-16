@@ -47,6 +47,9 @@ Param (
 	
 	[parameter(Mandatory = $false, HelpMessage = "Generalize TrendMicro Anti Virus Client")]
 	[Switch]$TrendMicro,
+
+    [parameter(Mandatory = $false, HelpMessage = "Generalize Sophos Anti Virus Client")]
+	[Switch]$Sophos,
 	
 	[parameter(Mandatory = $false, HelpMessage = "Run VMware specific Optimizations")]
 	[Switch]$VMware,
@@ -294,7 +297,32 @@ If ($Mode -eq "Seal") {
         Write-Host -ForegroundColor Green " done"        
 	    }
     }
-    	
+
+    ## Generalize Sophos AntiVirus Client
+	If ($Sophos -eq $true) {
+		Write-Host -NoNewLine "Generalizing Sophos Anti Virus..."
+      	# Run TrendMicro Generalization Tool
+        Stop-Service -Name 'Sophos Agent' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        Stop-Service -Name 'Sophos Message Router' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        Stop-Service -Name 'Sophos AutoUpdate Service' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        Stop-Service -Name 'Sophos Web Control Service' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+
+        ## Delete Registry Keys to avoid duplicate Names
+        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Sophos\Messaging System\Router\Private" -Name "pkc" -Force -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Sophos\Messaging System\Router\Private" -Name "pkp" -Force -ErrorAction SilentlyContinue
+
+        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Sophos\Remote Management System\ManagementAgent\Private" -Name "pkc" -Force -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Sophos\Remote Management System\ManagementAgent\Private" -Name "pkp" -Force -ErrorAction SilentlyContinue
+
+        ## Delete machine_ID.txt
+        Remove-Item -Path "$env:ALLUSERSPROFILE\Sophos\AutoUpdate\data\machine_ID.txt" -Force -ErrorAction SilentlyContinue
+        
+        ## Delete WebControl Endpoint ID Registry Key
+        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Sophos\Web Intelligence\Web Control" -Name "EndpointId" -Force -ErrorAction SilentlyContinue
+
+        Write-Host -ForegroundColor Green " done"        
+	    }
+        	
 	## Delete VMware Tools Status Tray Icons
 	If ($Optimize -eq $true -and $VMware -eq $true) {
 		Write-Host -NoNewLine "Disabling VMware Tools Status Tray..."
