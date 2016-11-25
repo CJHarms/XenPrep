@@ -56,7 +56,10 @@ Param (
 	
 	[parameter(Mandatory = $false, HelpMessage = "Optimize vDisk and Disk Space")]
 	[Switch]$Optimize,
-	
+
+	[parameter(Mandatory = $false, HelpMessage = "Optimize vDisk with sdelete")]
+	[Switch]$SDelete,
+
     [parameter(Mandatory = $false, HelpMessage = "Forces the Script to run with all the First Run Actions")]
 	[Switch]$ForceFirstRun,
 		
@@ -363,7 +366,7 @@ If ($Mode -eq "Seal") {
 	}
 	
     ## Reclaim Space on vDisk/Harddisk
-	If ($Optimize -eq $true) {
+	If ($SDelete -eq $true) {
 		Write-Host -NoNewLine "Reclaiming Disk Space..."
 		If ((Test-Path "$AddonFolder\sdelete\sdelete.exe") -eq $false ) {
 			Write-Host -ForegroundColor Red " failed"
